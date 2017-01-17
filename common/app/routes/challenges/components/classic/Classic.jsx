@@ -1,6 +1,6 @@
 import React, { PropTypes } from 'react';
 import { connect } from 'react-redux';
-import { Col } from 'react-bootstrap';
+import { Button, Col, Row } from 'react-bootstrap';
 import { createSelector } from 'reselect';
 import PureComponent from 'react-pure-render/component';
 
@@ -57,6 +57,19 @@ const bindableActions = {
   updateSuccessMessage
 };
 
+const editors = {
+  html: (
+    <Editor
+      mode={ 'text/html' }
+    />
+  ),
+  css: (
+    <Editor
+      mode={ 'css' }
+    />
+  )
+};
+
 export class Challenge extends PureComponent {
   static displayName = 'Challenge';
 
@@ -75,6 +88,15 @@ export class Challenge extends PureComponent {
     successMessage: PropTypes.string,
     updateSuccessMessage: PropTypes.func
   };
+
+  constructor(props) {
+    super(props);
+
+    this.state = {editor: 'html'};
+
+    this.editor = this.editor.bind(this);
+    this.setEditor = this.setEditor.bind(this);
+  }
 
   componentDidMount() {
     this.props.loadCode();
@@ -102,12 +124,41 @@ export class Challenge extends PureComponent {
     );
   }
 
+  setEditor(data) {
+
+    if (Object.keys(data).indexOf('target') > -1) {
+      data = data.target;
+      data = data.dataset;
+    }
+
+    console.log(data);
+
+    if (data.hasOwnProperty('editor')) {
+      console.log(data.editor);
+      return this.setState({currentEditor: data.editor});
+    }
+    else {
+      console.error('Oops!');
+    }
+
+  }
+
+
+  editor(content, executeChallenge, file, updateFile) {
+    return (
+      React.cloneElement(editors[this.state.editor], {
+        content: content,
+        executeChallenge: executeChallenge,
+        updateFile: content => updateFile(content, file)
+      })
+    );
+  }d
+
   render() {
     const {
       content,
       updateFile,
       file,
-      mode,
       showPreview,
       executeChallenge,
       submitChallenge,
@@ -128,12 +179,40 @@ export class Challenge extends PureComponent {
           lg={ showPreview ? 6 : 8 }
           md={ showPreview ? 5 : 8 }
           >
-          <Editor
-            content={ content }
-            executeChallenge={ executeChallenge }
-            mode={ mode }
-            updateFile={ content => updateFile(content, file) }
-          />
+          <Row>
+            <Col
+              lg = {12}
+              md = {6}
+              >
+                <Button
+                  data-editor = {'html'}
+                  onClick = {this.setEditor}
+                  style = {{width: "100%"}}
+                >
+                  HTML
+                </Button>
+            </Col>
+            <Col
+              lg = {12}
+              md = {6}
+              >
+                <Button
+                  data-editor = {'css'}
+                  onClick = {this.setEditor}
+                  style = {{width: "100%"}}
+                >
+                  CSS
+                </Button>
+            </Col>
+          </Row>
+          <Row>
+            <Col
+              lg = {12}
+              md = {12}
+              >
+              { this.editor(content, executeChallenge, file, updateFile) }
+            </Col>
+          </Row>
         </Col>
         { this.renderPreview(showPreview) }
         <BugModal />
