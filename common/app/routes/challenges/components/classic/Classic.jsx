@@ -57,18 +57,24 @@ const bindableActions = {
   updateSuccessMessage
 };
 
-const editors = {
-  html: (
-    <Editor
-      mode={ 'text/html' }
-    />
-  ),
-  css: (
-    <Editor
-      mode={ 'css' }
-    />
-  )
+
+const modeMap = {
+  HTML: 'text/html',
+  CSS: 'css',
+  JavaScript: 'javascript'
 };
+
+const modes = Object.keys(modeMap);
+
+let editors = {};
+
+modes.forEach(mode => {
+  editors[mode] = (
+    <Editor
+      mode = {modeMap[mode]}
+    />
+  );
+});
 
 export class Challenge extends PureComponent {
   static displayName = 'Challenge';
@@ -92,7 +98,7 @@ export class Challenge extends PureComponent {
   constructor(props) {
     super(props);
 
-    this.state = {editor: 'html'};
+    this.state = {editor: modes[0]};
 
     this.editor = this.editor.bind(this);
     this.setEditor = this.setEditor.bind(this);
@@ -131,11 +137,8 @@ export class Challenge extends PureComponent {
       data = data.dataset;
     }
 
-    console.log(data);
-
     if (data.hasOwnProperty('editor')) {
-      console.log(data.editor);
-      return this.setState({currentEditor: data.editor});
+      return this.setState({editor: data.editor});
     }
     else {
       console.error('Oops!');
@@ -152,7 +155,7 @@ export class Challenge extends PureComponent {
         updateFile: content => updateFile(content, file)
       })
     );
-  }d
+  }
 
   render() {
     const {
@@ -167,6 +170,8 @@ export class Challenge extends PureComponent {
       closeChallengeModal
     } = this.props;
 
+    const size = Math.floor(12 / modes.length);
+
     return (
       <div>
         <Col
@@ -180,30 +185,25 @@ export class Challenge extends PureComponent {
           md={ showPreview ? 5 : 8 }
           >
           <Row>
-            <Col
-              lg = {12}
-              md = {6}
-              >
-                <Button
-                  data-editor = {'html'}
-                  onClick = {this.setEditor}
-                  style = {{width: "100%"}}
-                >
-                  HTML
-                </Button>
-            </Col>
-            <Col
-              lg = {12}
-              md = {6}
-              >
-                <Button
-                  data-editor = {'css'}
-                  onClick = {this.setEditor}
-                  style = {{width: "100%"}}
-                >
-                  CSS
-                </Button>
-            </Col>
+            {
+              modes.map(mode => {
+                return (
+                  <Col
+                    lg = {size}
+                    md = {size}
+                    sm = {12}
+                  >
+                    <Button
+                      data-editor = {mode}
+                      onClick = {this.setEditor}
+                      style = {{width: "100%"}}
+                    >
+                      {mode}
+                    </Button>
+                  </Col>
+                );
+              })
+            }
           </Row>
           <Row>
             <Col
